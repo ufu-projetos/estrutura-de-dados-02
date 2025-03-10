@@ -53,13 +53,10 @@ Grafo* criarGrafo(int numero_vertices, int grau_maximo, int eh_ponderado, int eh
         }
     }
 
-    G->labels = (char**) malloc(numero_vertices * sizeof(char*));
+    G->labels = (char**) calloc(numero_vertices, sizeof(char*));
     if (G->labels == NULL) {
         printf("[!] Erro ao alocar memória para os rótulos!\n");
         exit(1);
-    }
-    for (int i = 0; i < numero_vertices; i++) {
-        G->labels[i] = NULL;
     }
 
     return G;
