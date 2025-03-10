@@ -12,8 +12,6 @@ int main() {
 	inserirAresta(gr, 3, 4, 0);
 	inserirAresta(gr, 4, 1, 0);
 
-
-
     imprime_Grafo(gr);
 
     return 0;
