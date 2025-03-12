@@ -92,17 +92,71 @@ int inserirAresta(Grafo *G, int vertice_origem, int vertice_destino, float peso)
     return 1;
 }
 
-void imprime_Grafo(Grafo *gr){
-	if(gr == NULL)
+int removeAresta(Grafo* G, int vertice_origem, int vertice_destino) {
+    if(G == NULL) return 0;
+    if(vertice_origem < 0 || vertice_origem >= G->numero_vertices) return 0;
+    if(vertice_destino < 0 || vertice_destino >= G->numero_vertices) return 0;
+
+    // procurar aresta
+    int i = 0;
+    while(i < G->grau[vertice_origem] && G->arestas[vertice_origem][i] != vertice_destino) {
+        i++;
+    }
+
+    // elemento nao encontrado
+    if(i == G->grau[vertice_origem]) return 0;
+
+    G->grau[vertice_origem]--;
+    G->arestas[vertice_origem][i] = G->arestas[vertice_origem][G->grau[vertice_origem]];
+    
+    if(G->eh_ponderado) {
+        G->pesos[vertice_origem][i] = G->pesos[vertice_origem][G->grau[vertice_origem]];
+    }
+
+    if(!G->eh_digrafo) {
+        i = 0;
+        while(i < G->grau[vertice_destino] && G->arestas[vertice_destino][i] != vertice_origem) {
+            i++;
+        }
+
+        if(i == G->grau[vertice_destino]) return 0;
+
+        G->grau[vertice_destino]--;
+        G->arestas[vertice_destino][i] = G->arestas[vertice_destino][G->grau[vertice_destino]];
+
+        if(G->eh_ponderado) {
+            G->pesos[vertice_destino][i] = G->pesos[vertice_destino][G->grau[vertice_destino]];
+        }
+    }
+
+    return 1;
+}
+
+int grau(Grafo *G, int vertice) {
+    if(G == NULL) return 0;
+
+    // verifica se o vertice existe
+    if(vertice < 0 || vertice > G->numero_vertices) return -1;
+
+    return G->grau[vertice];
+}
+
+void imprime_Grafo(Grafo* G){
+	if(G == NULL)
 		return;
 
-	for(int i=0; i < gr->numero_vertices; i++){
+	for(int i=0; i < G->numero_vertices; i++){
 		printf("%d: ", i);
-		for(int j=0; j < gr->grau[i]; j++){
-			if(gr->eh_ponderado)
-				printf("%d(%.2f), ", gr->arestas[i][j], gr->pesos[i][j]);
+		for(int j=0; j < G->grau[i]; j++){
+			if(G->eh_ponderado)
+				printf("%d(%.2f)", G->arestas[i][j], G->pesos[i][j]);
 			else
-				printf("%d, ", gr->arestas[i][j]);
+				printf("%d", G->arestas[i][j]);
+            
+            if(j < G->grau[i] - 1)
+                printf(", ");
+            else
+                printf(".");
 		}
 		printf("\n");
 	}
