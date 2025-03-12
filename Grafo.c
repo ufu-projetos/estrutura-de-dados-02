@@ -96,10 +96,9 @@ void imprime_Grafo(Grafo *gr){
 	if(gr == NULL)
 		return;
 
-	int i, j;
-	for(i=0; i < gr->numero_vertices; i++){
+	for(int i=0; i < gr->numero_vertices; i++){
 		printf("%d: ", i);
-		for(j=0; j < gr->grau[i]; j++){
+		for(int j=0; j < gr->grau[i]; j++){
 			if(gr->eh_ponderado)
 				printf("%d(%.2f), ", gr->arestas[i][j], gr->pesos[i][j]);
 			else
