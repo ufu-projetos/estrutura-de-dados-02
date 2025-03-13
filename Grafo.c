@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "Grafo.h"
+
+struct no {
+    int rotulo;
+    float peso;
+    struct no *proximo;
+};
+
+struct grafo {
+    int eh_ponderado;
+    int eh_digrafo;
+    int numero_vertices;
+    No **arestas;
+    int *grau;
+};
+
+Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo) {
+    Grafo *G = (Grafo *) malloc(sizeof(Grafo));
+    if(G == NULL) {
+        printf("[!] Nao foi possivel criar o grafo!");
+        exit(1);
+    }
+    G->numero_vertices = numero_vertices;
+    G->eh_ponderado = eh_ponderado;
+    G->eh_digrafo = eh_digrafo;
+    G->grau = (int *) calloc(numero_vertices, sizeof(int));
+    G->arestas = (No **) malloc(numero_vertices * sizeof(No *));
+    for(int i = 0; i < numero_vertices; i++) {
+        G->arestas[i] = NULL;
+    }
+
+    return G;
+}
+
+int liberarGrafo(Grafo *G) {
+    if(G == NULL) {
+        printf("Nao foi possivel liberar o grafo!");
+        return 1;
+    }
+
+    for(int i = 0; i < G->numero_vertices; i++) {
+        No * atual = G->arestas[i];
+        while(atual != NULL) {
+            No *temp = atual;
+            atual = atual->proximo;
+            free(temp);
+        }
+    }
+    free(G->arestas);
+    free(G->grau);
+    free(G);
+
+    return 1;
+}
+
+void imprimirGrafo(Grafo *G) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel imprimir o grafo - grafo nulo!");
+        exit(1);
+    }
+
+    for(int i = 0; i < G->numero_vertices; i++) {
+        printf("\n[%d] -> ", i);
+
+        No *p = G->arestas[i];
+        while(p != NULL) {
+            printf("%d", p->rotulo);
+            if(p->proximo != NULL) printf(", ");
+            
+            p = p->proximo;
+        }
+    }
+    printf("\n");
+}
+
+int inserirAresta(Grafo *G, int origem, int destino, int peso) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel inserir aresta - grafo nulo.");
+        exit(1);
+    }
+    
+    if(origem < 0 || origem >= G->numero_vertices) return 0;
+    if(destino < 0 || destino >= G->numero_vertices) return 0;
+
+    No *aresta = malloc(sizeof(No));
+    aresta->rotulo = destino;
+    aresta->proximo = G->arestas[origem];
+    G->arestas[origem] = aresta;
+
+    G->grau[origem]++;
+
+    // verifica se ele nao eh digrafo
+    if(!G->eh_digrafo) {
+        No *aresta = malloc(sizeof(No));
+        aresta->rotulo = origem;
+        aresta->proximo = G->arestas[destino];
+        G->arestas[destino] = aresta;
+    
+        G->grau[destino]++;
+    } 
+
+    return 1;
+}
