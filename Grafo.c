@@ -84,8 +84,9 @@ int inserirAresta(Grafo *G, int origem, int destino, int peso) {
         exit(1);
     }
     
-    if(origem < 0 || origem >= G->numero_vertices) return 0;
-    if(destino < 0 || destino >= G->numero_vertices) return 0;
+    if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+        return 0;
+    }
 
     No *aresta = malloc(sizeof(No));
     aresta->rotulo = destino;
@@ -111,3 +112,16 @@ int inserirAresta(Grafo *G, int origem, int destino, int peso) {
 
     return 1;
 }
+
+// int removerAresta(Grafo *G, int origem, int destino) {
+//     if(G == NULL) {
+//         perror("\n[!] Nao foi possivel remover aresta - grafo nulo.");
+//         exit(1);
+//     }
+
+//     if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+//         return 0;
+//     }
+
+    
+// }
