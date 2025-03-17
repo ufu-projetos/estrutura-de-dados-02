@@ -4,7 +4,7 @@
 
 struct no {
     int rotulo;
-    float peso;
+    double peso;
     struct no *proximo;
 };
 
