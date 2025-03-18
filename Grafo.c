@@ -165,3 +165,57 @@ int removerAresta(Grafo *G, int origem, int destino) {
 
     return 0;
 }
+
+int grau(Grafo *G, int vertice) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel verfificar o grau do vertice %d - grafo nulo.", vertice);
+        exit(1);
+    }
+
+    // Verifica se o vértice é válido
+    if(vertice < 0 || vertice >= G->numero_vertices) {
+        return -1;
+    }
+
+    return G->grau[vertice];
+}
+
+float grauMedio(Grafo *G) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel calcular o grau medio - grafo nulo.");
+        exit(1);
+    }
+
+    if(G->numero_vertices == 0) {
+        return -1;
+    }
+
+    int soma = 0;
+    for(int i = 0; i < G->numero_vertices; i++) {
+        soma += G->grau[i];
+    }
+
+    return soma / G->numero_vertices;
+}
+
+int grauMax(Grafo *G, int *vertice) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel calcular o grau maximo - grafo nulo.");
+        exit(1);
+    }
+
+    if(G->numero_vertices == 0) {
+        return -1;
+    }
+
+    int max = G->grau[0];
+    *vertice = 0;
+    for(int i = 0; i < G->numero_vertices; i++) {
+        if(G->grau[i] > max) {
+            max = G->grau[i];
+            *vertice = i;
+        }
+    }
+    
+    return max;
+}
