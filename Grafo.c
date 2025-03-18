@@ -136,7 +136,7 @@ int removerAresta(Grafo *G, int origem, int destino) {
             }
             G->grau[origem]--;
             free(atual);
-            break; // Aresta removida com sucesso
+            break;
         }
         anterior = atual;
         atual = atual->proximo;
