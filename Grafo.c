@@ -113,15 +113,55 @@ int inserirAresta(Grafo *G, int origem, int destino, int peso) {
     return 1;
 }
 
-// int removerAresta(Grafo *G, int origem, int destino) {
-//     if(G == NULL) {
-//         perror("\n[!] Nao foi possivel remover aresta - grafo nulo.");
-//         exit(1);
-//     }
+int removerAresta(Grafo *G, int origem, int destino) {
+    if(G == NULL) {
+        perror("\n[!] Nao foi possivel remover aresta - grafo nulo.");
+        exit(1);
+    }
 
-//     if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
-//         return 0;
-//     }
+    if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+        return 0;
+    }
 
+    // Remove a aresta (origem, destino)
+    No *atual = G->arestas[origem];
+    No *anterior = NULL;
     
-// }
+    while(atual != NULL) {
+        if(atual->rotulo == destino) {
+            if(anterior == NULL) {
+                G->arestas[origem] = atual->proximo;
+            } else {
+                anterior->proximo = atual->proximo;
+            }
+            G->grau[origem]--;
+            free(atual);
+            break; // Aresta removida com sucesso
+        }
+        anterior = atual;
+        atual = atual->proximo;
+    }
+
+    // Se o grafo não for direcionado, remove a aresta (destino, origem)
+    if(!G->eh_digrafo) {
+        atual = G->arestas[destino];
+        anterior = NULL;
+
+        while(atual != NULL) {
+            if(atual->rotulo == origem) {
+                if(anterior == NULL) {
+                    G->arestas[destino] = atual->proximo;
+                } else {
+                    anterior->proximo = atual->proximo;
+                }
+                G->grau[destino]--;
+                free(atual);
+                return 1;
+            }
+            anterior = atual;
+            atual = atual->proximo;
+        }
+    }
+
+    return 0;
+}
