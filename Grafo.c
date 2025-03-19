@@ -196,7 +196,9 @@ float grauMedio(Grafo *G) {
         soma += G->grau[i];
     }
 
-    return soma / G->numero_vertices;
+    float resultado = (float) soma / (float) G->numero_vertices;
+
+    return resultado;
 }
 
 int grauMax(Grafo *G, int *vertice) {

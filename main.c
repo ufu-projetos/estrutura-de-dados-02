@@ -79,6 +79,22 @@ Grafo *menu(Grafo *G, int opcao) {
                 printf("\nGrafo criado com sucesso!\n");
             }
 
+            inserirAresta(G, 0, 1, 10);
+            inserirAresta(G, 0, 2, 15);
+            inserirAresta(G, 1, 2, 20);
+            inserirAresta(G, 1, 3, 25);
+            inserirAresta(G, 2, 3, 30);
+            inserirAresta(G, 2, 4, 35);
+            inserirAresta(G, 3, 4, 40);
+            inserirAresta(G, 3, 5, 45);
+            inserirAresta(G, 4, 5, 50);
+            inserirAresta(G, 4, 6, 55);
+            inserirAresta(G, 5, 6, 60);
+            inserirAresta(G, 5, 7, 65);
+            inserirAresta(G, 6, 7, 70);
+            inserirAresta(G, 0, 7, 75);
+            inserirAresta(G, 1, 5, 80);
+
             break;
         
         case 2:
@@ -126,23 +142,32 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-            case 4:
-                if(G == NULL) {
-                    printf("\n[!] Nao eh possivel verificar o grau de um vertice. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+        case 4:
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel verificar o grau de um vertice. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                int vertice;
+                printf("\nDigite o vertice que deseja verificar o grau: ");
+                scanf("%d", &vertice);
+
+                int grau_vertice = grau(G, vertice);
+                if(grau_vertice == -1) {
+                    printf("\n[!] Vertice invalido!\n");
                 } else {
-                    int vertice;
-                    printf("\nDigite o vertice que deseja verificar o grau: ");
-                    scanf("%d", &vertice);
-
-                    int grau_vertice = grau(G, vertice);
-                    if(grau_vertice == -1) {
-                        printf("\n[!] Vertice invalido!\n");
-                    } else {
-                        printf("\nO grau do vertice %d eh: %d\n", vertice, grau_vertice);
-                    }
+                    printf("\nO grau do vertice %d eh: %d\n", vertice, grau_vertice);
                 }
+            }
 
-                break;
+            break;
+        
+        case 5:
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel verificar o grau medio do grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                printf("\nO grau medio do grafo eh: %.2f\n", grauMedio(G));
+            }
+
+            break;
 
         case 7:
             if(G == NULL) {
