@@ -52,7 +52,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
                 // Numero de vertices do grafo
                 do {
-                    printf("\nDigite o numero de vertices do grafo: ");
+                    printf("\n[*] Digite o numero de vertices do grafo: ");
                     scanf("%d", &numero_vertices);
     
                     if(numero_vertices <= 0) {
@@ -125,6 +125,24 @@ Grafo *menu(Grafo *G, int opcao) {
             }
 
             break;
+        
+            case 4:
+                if(G == NULL) {
+                    printf("\n[!] Nao eh possivel verificar o grau de um vertice. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+                } else {
+                    int vertice;
+                    printf("\nDigite o vertice que deseja verificar o grau: ");
+                    scanf("%d", &vertice);
+
+                    int grau_vertice = grau(G, vertice);
+                    if(grau_vertice == -1) {
+                        printf("\n[!] Vertice invalido!\n");
+                    } else {
+                        printf("\nO grau do vertice %d eh: %d\n", vertice, grau_vertice);
+                    }
+                }
+
+                break;
 
         case 7:
             if(G == NULL) {
