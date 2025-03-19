@@ -38,7 +38,7 @@ Grafo *menu(Grafo *G, int opcao) {
                     if(eh_ponderado != 0 && eh_ponderado != 1) {
                         printf("\n[!] Opcao invalida! Digite novamente uma opcao: \n");
                     }
-                } while (eh_ponderado != 0 && eh_ponderado != 1);
+                } while(eh_ponderado != 0 && eh_ponderado != 1);
     
                 // Opcao de grafo direcionado ou nao direcionado
                 do {
@@ -48,7 +48,7 @@ Grafo *menu(Grafo *G, int opcao) {
                     if(eh_digrafo != 0 && eh_digrafo != 1) {
                         printf("\n[!] Opcao invalida! Digite novamente uma opcao: \n");
                     }
-                } while (eh_digrafo != 0 && eh_digrafo != 1);
+                } while(eh_digrafo != 0 && eh_digrafo != 1);
 
                 // Numero de vertices do grafo
                 do {
@@ -58,7 +58,7 @@ Grafo *menu(Grafo *G, int opcao) {
                     if(numero_vertices <= 0) {
                         printf("\n[!] Numero de vertices invalido! Digite novamente um numero valido: \n");
                     }
-                } while (numero_vertices <= 0);
+                } while(numero_vertices <= 0);
 
                 G = criarGrafo(numero_vertices, eh_ponderado, eh_digrafo);
             }
@@ -81,31 +81,50 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        // case 2:
-        //     if(G == NULL) {
-        //         printf("\n[!] Nao eh possivel adicionar aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
-        //     } else {
-        //         int origem, destino, peso;
-        //         printf("\nDigite a origem da aresta: ");
-        //         scanf("%d", &origem);
-        //         printf("Digite o destino da aresta: ");
-        //         scanf("%d", &destino);
+        case 2:
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel adicionar aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                int origem, destino, peso;
+                printf("\nDigite a origem da aresta: ");
+                scanf("%d", &origem);
+                printf("Digite o destino da aresta: ");
+                scanf("%d", &destino);
 
-        //         if(G->eh_ponderado) {
-        //             printf("Digite o peso da aresta: ");
-        //             scanf("%d", &peso);
-        //         } else {
-        //             peso = 0;
-        //         }
+                if(grafoEhPonderado(G)) {
+                    printf("Digite o peso da aresta: ");
+                    scanf("%d", &peso);
+                } else {
+                    peso = 0;
+                }
 
-        //         if(inserirAresta(G, origem, destino, peso)) {
-        //             printf("\nAresta inserida com sucesso!\n");
-        //         } else {
-        //             printf("\n[!] Erro ao inserir aresta!\n");
-        //         }
-        //     }
+                if(inserirAresta(G, origem, destino, peso)) {
+                    printf("\nAresta inserida com sucesso!\n");
+                } else {
+                    printf("\n[!] Erro ao inserir aresta!\n");
+                }
+            }
 
-        //     break;
+            break;
+        
+        case 3:
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel remover aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                int origem, destino;
+                printf("\nDigite a origem da aresta: ");
+                scanf("%d", &origem);
+                printf("Digite o destino da aresta: ");
+                scanf("%d", &destino);
+
+                if(removerAresta(G, origem, destino)) {
+                    printf("\nAresta removida com sucesso!\n");
+                } else {
+                    printf("\n[!] Erro ao remover aresta!\n");
+                }
+            }
+
+            break;
 
         case 7:
             if(G == NULL) {
@@ -165,17 +184,17 @@ int main() {
             printf("0 - Sair\n");
         }
 
-        
         printf("\n\n> ");
-        scanf("%d", &opcao);
+        if(scanf("%d", &opcao) != 1) {
+            printf("\n[!] Entrada inválida! Digite apenas números.\n\n\n");
+            while(getchar() != '\n');
+            opcao = 0;
+            break;
+        }
 
         if(opcao)
             G = menu(G, opcao);
-    } while(opcao  && isdigit(opcao));
-
-    if(!isdigit(opcao)) {
-        printf("\n[!] Ops! Voce digitou um carctere ao inves de um numero.\nO programa ser encerrado. \n\n\n");
-    }
+    } while(opcao);
     
     encerrar(G);
 

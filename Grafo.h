@@ -13,5 +13,6 @@ int removerAresta(Grafo *G, int origem, int destino);
 int grau(Grafo *G, int vertice);
 float grauMedio(Grafo *G);
 int grauMax(Grafo *G, int *vertice);
+int grafoEhPonderado(Grafo *G);
 
 #endif

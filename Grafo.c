@@ -220,3 +220,13 @@ int grauMax(Grafo *G, int *vertice) {
     
     return max;
 }
+
+// Verifica se o grafo eh ponderado
+int grafoEhPonderado(Grafo *G) {
+    if(G == NULL) {
+        printf("[!] Nao foi possivel verificar se o grafo eh ponderado - grafo nulo.");
+        exit(1);
+    }
+
+    return G->eh_ponderado;
+}
