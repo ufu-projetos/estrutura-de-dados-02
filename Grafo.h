@@ -14,5 +14,7 @@ int grau(Grafo *G, int vertice);
 float grauMedio(Grafo *G);
 int grauMax(Grafo *G, int *vertice);
 int grafoEhPonderado(Grafo *G);
+Grafo *menu(Grafo *G, int opcao);
+void encerrar(Grafo *G);
 
 #endif
