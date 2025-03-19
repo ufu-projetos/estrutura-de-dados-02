@@ -190,7 +190,7 @@ Grafo *menu(Grafo *G, int opcao) {
             break;
 
         default:
-            printf("Opcao invalida! Digite novamente uma opcao: \n");
+            printf("\n[x] Opcao invalida! Digite novamente uma opcao: \n\n");
             break;
     }
 
