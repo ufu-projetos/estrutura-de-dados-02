@@ -62,6 +62,7 @@ void imprimirGrafo(Grafo *G) {
         printf("[!] Nao foi possivel imprimir o grafo - grafo nulo!");
         exit(1);
     }
+    printf("\t\t\t\t\t\t\t\t\n\n ---- GRAFO IMPRESSO ----\n\n");
 
     for(int i = 0; i < G->numero_vertices; i++) {
         printf("\n[%d] -> ", i);
