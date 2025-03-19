@@ -20,13 +20,14 @@ $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS)
 
 # Regras para compilar os arquivos .c em .o
+$(BUILD_DIR)/Grafo.o: Grafo.c Grafo.h
+	@mkdir -p $(BUILD_DIR)  # Cria o diretório se não existir
+	$(CC) $(CFLAGS) -c Grafo.c -o $@
+
 $(BUILD_DIR)/main.o: main.c Grafo.h
 	@mkdir -p $(BUILD_DIR)  # Cria o diretório se não existir
 	$(CC) $(CFLAGS) -c main.c -o $@
 
-$(BUILD_DIR)/Grafo.o: Grafo.c Grafo.h
-	@mkdir -p $(BUILD_DIR)  # Cria o diretório se não existir
-	$(CC) $(CFLAGS) -c Grafo.c -o $@
 
 # Limpar os arquivos objeto e o executável
 clean:
