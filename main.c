@@ -168,6 +168,17 @@ Grafo *menu(Grafo *G, int opcao) {
             }
 
             break;
+        
+        case 6:
+            int vertice = 0;
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel verificar o grau maximo do grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                int grauMaximo = grauMax(G, &vertice);
+                printf("\nO grau maximo do grafo eh: %d\n no vertice %d", grauMaximo, vertice);
+            }
+
+            break;
 
         case 7:
             if(G == NULL) {
