@@ -17,6 +17,6 @@ int grafoEhPonderado(Grafo *G);
 Grafo *menu(Grafo *G, int opcao);
 void encerrar(Grafo *G);
 Grafo *carregarArquivo( Grafo *G, const char *nome_arquivo);
-int insereVertice(Grafo *G, int label);
+int inserirVertice(Grafo *G, int vertice);
 
 #endif

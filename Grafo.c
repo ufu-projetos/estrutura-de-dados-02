@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <string.h>
 #include "Grafo.h"
 
 struct no {
@@ -16,7 +17,7 @@ struct grafo {
     int numero_vertices;
     No **arestas;
     int *grau;
-    int *label;
+    int *label; // id do vertice
 };
 
 Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo) {
@@ -33,7 +34,7 @@ Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo) {
     for(int i = 0; i < numero_vertices; i++) {
         G->arestas[i] = NULL;
     }
-    G->label = (char **) calloc(numero_vertices, sizeof(char *));
+    G->label = (int *) calloc(numero_vertices, sizeof(int));
     
     return G;
 }
@@ -482,10 +483,26 @@ Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo) {
             } else {
                 // Expande o grafo dinamicamente
                 G->grau = (int *) realloc(G->grau, novo_tamanho * sizeof(int));
+                if (G->grau == NULL) {
+                    printf("[!] Erro ao realocar memoria para grau.\n");
+                    exit(1);
+                }
+
                 G->arestas = (No **) realloc(G->arestas, novo_tamanho * sizeof(No *));
+                if (G->arestas == NULL) {
+                    printf("[!] Erro ao realocar memoria para arestas.\n");
+                    exit(1);
+                }
+
+                G->label = (int *) realloc(G->label, novo_tamanho * sizeof(int));
+                if (G->label == NULL) {
+                    printf("[!] Erro ao realocar memoria para labels.\n");
+                    exit(1);
+                }
                 for (int i = G->numero_vertices; i < novo_tamanho; i++) {
                     G->grau[i] = 0;
                     G->arestas[i] = NULL;
+                    G->label[i] = 0; // Inicializa os novos rótulos como 0
                 }
                 G->numero_vertices = novo_tamanho;
             }
@@ -500,7 +517,7 @@ Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo) {
     return G;
 }
 
-int insereVertice(Grafo *G, int label) {
+int inserirVertice(Grafo *G, int vertice) {
     if(G == NULL) {
         printf("[!] Nao foi possivel inserir vertice - grafo nulo.");
         exit(1);
