@@ -1,9 +1,5 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <ctype.h>
 #include "Grafo.h"
-
-
 
 int main() {
     Grafo *G = NULL; // Grafo a ser criado
@@ -23,8 +19,8 @@ int main() {
             printf("5 - Verificar grau medio do grafo\n");
             printf("6 - Verificar grau maximo do grafo\n");
             printf("7 - Imprimir grafo\n");
-            printf("0 - Sair\n");
         }
+        printf("0 - Sair\n");
 
         printf("\n\n> ");
         if(scanf("%d", &opcao) != 1) {
