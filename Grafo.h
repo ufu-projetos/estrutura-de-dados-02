@@ -16,7 +16,7 @@ int grauMax(Grafo *G, int *vertice);
 int grafoEhPonderado(Grafo *G);
 Grafo *menu(Grafo *G, int opcao);
 void encerrar(Grafo *G);
-Grafo *carregarArquivo( Grafo *G, const char *nome_arquivo);
+Grafo *carregarArquivo( Grafo *G, const char *nome_arquivo, int eh_ponderado);
 int inserirVertice(Grafo *G, int vertice);
 
 #endif

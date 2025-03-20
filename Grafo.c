@@ -71,9 +71,7 @@ void imprimirGrafo(Grafo *G) {
 
     for(int i = 0; i < G->numero_vertices; i++) {
         // Imprimi o label do vertice
-        if(G->grau[i] > 0) {
-            printf("\n[%s%d] -> ", (G->label[i] < 10) ? "0" : "", G->label[i]);
-        }
+        printf("\n[%s%d] -> ", (G->label[i] < 10) ? "0" : "", G->label[i]);
 
         No *p = G->arestas[i];
         while(p != NULL) {
@@ -304,11 +302,21 @@ Grafo *menu(Grafo *G, int opcao) {
             }
             // ------------ Carregar arquivo --------------
             else {
+                // Se o grafo eh ponderado ou nao
+                do {
+                    printf("\n[?] O grafo eh ponderado? (1 - Sim, 0 - Nao)\n> ");
+                    scanf("%d", &eh_ponderado);
+    
+                    if(eh_ponderado != 0 && eh_ponderado != 1) {
+                        printf("\n[!] Opcao invalida! Digite novamente uma opcao: \n");
+                    }
+                } while(eh_ponderado != 0 && eh_ponderado != 1);
+
                 char nome_arquivo[100];
                 printf("\nDigite o nome do arquivo: ");
                 scanf("%s", nome_arquivo);
 
-                G = carregarArquivo(G, nome_arquivo);
+                G = carregarArquivo(G, nome_arquivo, (eh_ponderado == 1) ? 1 : 0);
             }
 
             
@@ -318,22 +326,6 @@ Grafo *menu(Grafo *G, int opcao) {
             } else {
                 printf("\nGrafo criado com sucesso!\n");
             }
-
-            // inserirAresta(G, 0, 1, 10);
-            // inserirAresta(G, 0, 2, 15);
-            // inserirAresta(G, 1, 2, 20);
-            // inserirAresta(G, 1, 3, 25);
-            // inserirAresta(G, 2, 3, 30);
-            // inserirAresta(G, 2, 4, 35);
-            // inserirAresta(G, 3, 4, 40);
-            // inserirAresta(G, 3, 5, 45);
-            // inserirAresta(G, 4, 5, 50);
-            // inserirAresta(G, 4, 6, 55);
-            // inserirAresta(G, 5, 6, 60);
-            // inserirAresta(G, 5, 7, 65);
-            // inserirAresta(G, 6, 7, 70);
-            // inserirAresta(G, 0, 7, 75);
-            // inserirAresta(G, 1, 5, 80);
 
             break;
         
@@ -428,6 +420,25 @@ Grafo *menu(Grafo *G, int opcao) {
             }
 
             break;
+        
+        case 8:
+            if(G == NULL) {
+                printf("\n[!] Nao eh possivel adicionar um novo vertice ao grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
+            } else {
+                do {
+                    printf("\nDigite o vertice que deseja adicionar: ");
+                    scanf("%d", &vertice);
+
+                    if(vertice < 0) {
+                        printf("\n[!] Vertice invalido! Digite um vertice valido.\n");
+                        continue;
+                    }
+                } while(vertice < 0);
+
+                inserirVertice(G, vertice);
+            }
+
+        break;
 
         default:
             printf("\n[x] Opcao invalida! Digite novamente uma opcao: \n\n");
@@ -457,73 +468,113 @@ void encerrar(Grafo *G) {
     printf("\n\nPrograma encerrado com exito! :)\n\n");
 }
 
-// Carrega o dataset de um arquivo
-Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo) {
+// Carrega um arquivo de um grafo
+Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo, int eh_ponderado) {
     FILE *arquivo = fopen(nome_arquivo, "r");
     if (arquivo == NULL) {
         printf("[!] Erro ao abrir o arquivo '%s'.\n", nome_arquivo);
         return NULL;
     }
 
+    char primeira_linha[256];
+    if (fgets(primeira_linha, sizeof(primeira_linha), arquivo) != NULL && primeira_linha[0] == '%') {
+        printf("[!] Este dataset possivelmente está fora do padrão.\n");
+    }
+    rewind(arquivo);
+
     int origem, destino;
     double peso;
     int maior_vertice = -1;
+    int eh_digrafo = 0;
+    int tem_peso = 0;
 
-    // Lê o arquivo linha por linha
-    while (fscanf(arquivo, "%d %d %lf", &origem, &destino, &peso) == 3) {
-        // Determina o maior índice de vértice
+    while (fscanf(arquivo, "%d %d", &origem, &destino) == 2) {
+        if (fscanf(arquivo, "%lf", &peso) == 1) {
+            tem_peso = 1;
+        } else {
+            fseek(arquivo, -1, SEEK_CUR);
+            char c;
+            while ((c = fgetc(arquivo)) != '\n' && c != EOF); 
+            peso = 1.0; 
+        }
+
+
         if (origem > maior_vertice) maior_vertice = origem;
         if (destino > maior_vertice) maior_vertice = destino;
 
-        // Se o grafo não foi criado ou precisa ser expandido
-        if (G == NULL || maior_vertice >= G->numero_vertices) {
-            int novo_tamanho = maior_vertice + 1; // Ajusta o tamanho para acomodar o maior vértice
-            if (G == NULL) {
-                G = criarGrafo(novo_tamanho, 1, 0); // Cria um grafo inicial (ponderado e não direcionado)
-            } else {
-                // Expande o grafo dinamicamente
-                G->grau = (int *) realloc(G->grau, novo_tamanho * sizeof(int));
-                if (G->grau == NULL) {
-                    printf("[!] Erro ao realocar memoria para grau.\n");
-                    exit(1);
-                }
+    }
 
-                G->arestas = (No **) realloc(G->arestas, novo_tamanho * sizeof(No *));
-                if (G->arestas == NULL) {
-                    printf("[!] Erro ao realocar memoria para arestas.\n");
-                    exit(1);
-                }
+    rewind(arquivo);
 
-                G->label = (int *) realloc(G->label, novo_tamanho * sizeof(int));
-                if (G->label == NULL) {
-                    printf("[!] Erro ao realocar memoria para labels.\n");
-                    exit(1);
-                }
-                for (int i = G->numero_vertices; i < novo_tamanho; i++) {
-                    G->grau[i] = 0;
-                    G->arestas[i] = NULL;
-                    G->label[i] = 0; // Inicializa os novos rótulos como 0
-                }
-                G->numero_vertices = novo_tamanho;
+    if (G == NULL) {
+        G = criarGrafo(maior_vertice + 1, tem_peso, eh_digrafo);
+    }
+
+    G->eh_ponderado = tem_peso;
+
+    rewind(arquivo);
+    while (fscanf(arquivo, "%d %d", &origem, &destino) == 2) {
+        if (tem_peso) {
+           if (fscanf(arquivo, "%lf", &peso) != 1) {
+               printf("Erro ao ler o peso da aresta (%d, %d).\n", origem, destino);
+               fclose(arquivo);
+               return NULL;
             }
+        } else {
+            peso = 1.0;
+            char c;
+            while ((c = fgetc(arquivo)) != '\n' && c != EOF); // Avança até o final da linha atual
         }
-
-        // Insere a aresta no grafo
         inserirAresta(G, origem, destino, peso);
     }
 
+
     fclose(arquivo);
-    printf("[*] Arquivo '%s' carregado com sucesso.\n", nome_arquivo);
+
+    G->eh_ponderado = eh_ponderado;
+
+    printf("\n\n[*] Arquivo '%s' carregado com sucesso. Grafo %s e %s.\n", nome_arquivo, eh_digrafo ? "direcionado" : "nao direcionado", G->eh_ponderado ? "ponderado" : "não ponderado");
     return G;
 }
 
+
 int inserirVertice(Grafo *G, int vertice) {
-    if(G == NULL) {
-        printf("[!] Nao foi possivel inserir vertice - grafo nulo.");
+    if (G == NULL) {
+        printf("[!] Nao foi possivel inserir vertice - grafo nulo.\n");
         exit(1);
     }
 
-    
+    // Verifica se o vértice já está dentro do tamanho atual
+    if (vertice < G->numero_vertices) {
+        printf("[*] O vértice %d já existe no grafo.\n", vertice);
+        return 1;
+    }
+
+    // Calcula o novo tamanho do grafo (aumenta em até 50%)
+    int novo_tamanho = G->numero_vertices++;
+    if (vertice >= novo_tamanho) {
+        novo_tamanho = vertice + 1; // Garante que o novo tamanho acomode o vértice
+    }
+
+    // Realoca memória para os vetores do grafo
+    G->grau = (int *) realloc(G->grau, novo_tamanho * sizeof(int));
+    G->arestas = (No **) realloc(G->arestas, novo_tamanho * sizeof(No *));
+    G->label = (int *) realloc(G->label, novo_tamanho * sizeof(int));
+
+    if (G->grau == NULL || G->arestas == NULL || G->label == NULL) {
+        printf("[!] Erro ao realocar memória para o grafo.\n");
+        exit(1);
+    }
+
+    // Inicializa os novos vértices
+    for (int i = G->numero_vertices; i < novo_tamanho; i++) {
+        G->grau[i] = 0;
+        G->arestas[i] = NULL;
+        G->label[i] = i; // Define o rótulo como o índice do vértice
+    }
+
+    G->numero_vertices = novo_tamanho; // Atualiza o número de vértices
+    printf("[*] O grafo foi expandido para %d vértices.\n", G->numero_vertices);
 
     return 1;
 }
