@@ -19,6 +19,9 @@ int main() {
             printf("5 - Verificar grau medio do grafo\n");
             printf("6 - Verificar grau maximo do grafo\n");
             printf("7 - Imprimir grafo\n");
+            printf("8 - Adicionar novo vertice\n");
+            printf("9 - Verificar componentes conexas\n");
+            printf("10 - Verificar menor caminho medio\n");
         }
         printf("0 - Sair\n");
 

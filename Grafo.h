@@ -18,5 +18,9 @@ Grafo *menu(Grafo *G, int opcao);
 void encerrar(Grafo *G);
 Grafo *carregarArquivo( Grafo *G, const char *nome_arquivo, int eh_ponderado);
 int inserirVertice(Grafo *G, int vertice);
+void dfs(Grafo *G, int vertice, int *visitado, int *tamanho_componente);
+void componentesConexas(Grafo *G, int *num_componentes, int *maior_componente);
+void dijkstra(Grafo *G, int origem, double *dist);
+double menorCaminhoMedio(Grafo *G);
 
 #endif
