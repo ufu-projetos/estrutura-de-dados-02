@@ -23,21 +23,25 @@ struct grafo {
 };
 
 Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo) {
-    Grafo *G = (Grafo *) malloc(sizeof(Grafo));
-    if(G == NULL) {
-        printf("[!] Nao foi possivel criar o grafo!");
+    Grafo *G = (Grafo *)malloc(sizeof(Grafo));
+    if (G == NULL) {
+        printf("[!] Nao foi possivel criar o grafo!\n");
         exit(1);
     }
+
     G->numero_vertices = numero_vertices;
     G->eh_ponderado = eh_ponderado ? 1 : 0;
     G->eh_digrafo = eh_digrafo ? 1 : 0;
-    G->grau = (int *) calloc(numero_vertices, sizeof(int));
-    G->arestas = (No **) malloc(numero_vertices * sizeof(No *));
-    for(int i = 0; i < numero_vertices; i++) {
+    G->grau = (int *)calloc(numero_vertices, sizeof(int));
+    G->arestas = (No **)malloc(numero_vertices * sizeof(No *));
+    G->label = (int *)malloc(numero_vertices * sizeof(int));
+
+    for (int i = 0; i < numero_vertices; i++) {
         G->arestas[i] = NULL;
+        G->grau[i] = 0;
+        G->label[i] = i; // Inicializa o label com o índice do vértice
     }
-    G->label = (int *) calloc(numero_vertices, sizeof(int));
-    
+
     return G;
 }
 
@@ -89,38 +93,31 @@ void imprimirGrafo(Grafo *G) {
 }
 
 int inserirAresta(Grafo *G, int origem, int destino, double peso) {
-    if(G == NULL) {
-        printf("[!] Nao foi possivel inserir aresta - grafo nulo.");
+    if (G == NULL) {
+        printf("[!] Nao foi possivel inserir aresta - grafo nulo.\n");
         exit(1);
     }
-    
-    if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+
+    if ((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
         return 0;
     }
 
     No *aresta = malloc(sizeof(No));
     aresta->rotulo = destino;
-    if(G->eh_ponderado) aresta->peso = peso;
+    if (G->eh_ponderado) aresta->peso = peso;
     aresta->proximo = G->arestas[origem];
     G->arestas[origem] = aresta;
     G->grau[origem]++;
-    G->label[origem] = origem;
 
-
-    // verifica se ele nao e digrafo
-    if(!G->eh_digrafo) {
-        if(origem < 0 || origem >= G->numero_vertices) return 0;
-        if(destino < 0 || destino >= G->numero_vertices) return 0;
-
-        No *aresta = malloc(sizeof(No));
-        aresta->rotulo = origem;
-        if(G->eh_ponderado) aresta->peso = peso;
-        aresta->proximo = G->arestas[destino];
-        G->arestas[destino] = aresta;
-    
+    // Verifica se o grafo não é direcionado
+    if (!G->eh_digrafo) {
+        No *aresta_inversa = malloc(sizeof(No));
+        aresta_inversa->rotulo = origem;
+        if (G->eh_ponderado) aresta_inversa->peso = peso;
+        aresta_inversa->proximo = G->arestas[destino];
+        G->arestas[destino] = aresta_inversa;
         G->grau[destino]++;
-        G->label[destino] = destino;
-    } 
+    }
 
     return 1;
 }
