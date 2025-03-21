@@ -512,7 +512,7 @@ Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo, int eh_ponderado) {
 
     char primeira_linha[256];
     if (fgets(primeira_linha, sizeof(primeira_linha), arquivo) != NULL && primeira_linha[0] == '%') {
-        printf("[!] Este dataset possivelmente está fora do padrao.\n");
+        printf("[!] Este dataset possivelmente esta fora do padrao.\n");
     }
     rewind(arquivo);
 
@@ -717,28 +717,28 @@ double menorCaminhoMedio(Grafo *G) {
 // Visao geral do grafo
 void visaoGeral(Grafo *G) {
     if (G == NULL) {
-        printf("[!] O grafo ainda não foi criado.\n");
+        printf("[!] O grafo ainda nao foi criado.\n");
         return;
     }
 
-    printf("\n\t\t\t\t\t\t--- Visão Geral do Grafo ---\n\n\n");
-    printf("[-] Número de vértices: %d\n", G->numero_vertices);
-    printf("[-] Grafo %s\n", G->eh_digrafo ? "direcionado" : "não direcionado");
-    printf("[-] Grafo %s\n", G->eh_ponderado ? "ponderado" : "não ponderado");
-    printf("[-] Grau médio do grafo: %.2f\n", grauMedio(G));
+    printf("\n\t\t\t\t\t\t--- Visao Geral do Grafo ---\n\n\n");
+    printf("[-] Numero de vertices: %d\n", G->numero_vertices);
+    printf("[-] Grafo %s\n", G->eh_digrafo ? "direcionado" : "nao direcionado");
+    printf("[-] Grafo %s\n", G->eh_ponderado ? "ponderado" : "nao ponderado");
+    printf("[-] Grau medio do grafo: %.2f\n", grauMedio(G));
     int vertice;
     int grau = grauMax(G, &vertice);
-    printf("[-] Grau máximo do grafo: %d no vertice %d\n", grau, vertice);
+    printf("[-] Grau maximo do grafo: %d no vertice %d\n", grau, vertice);
 
     int num_componentes = 0, maior_componente = 0;
     componentesConexas(G, &num_componentes, &maior_componente);
-    printf("[-] Número de componentes conexas: %d\n", num_componentes);
+    printf("[-] Numero de componentes conexas: %d\n", num_componentes);
     printf("[-] Tamanho da maior componente: %d\n", maior_componente);
 
     double caminho_medio = menorCaminhoMedio(G);
     if (caminho_medio < 0) {
-        printf("[-] Menor caminho médio: Não aplicável (grafo desconexo).\n");
+        printf("[-] Menor caminho medio: Nao aplicavel (grafo desconexo).\n");
     } else {
-        printf("[-] Menor caminho médio: %.2f\n", caminho_medio);
+        printf("[-] Menor caminho medio: %.2f\n", caminho_medio);
     }
 }
