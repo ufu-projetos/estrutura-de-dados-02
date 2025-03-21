@@ -13,15 +13,16 @@ int main() {
             printf("\n[!] Ainda nao ha nenhum grafo criado!");
             printf("\n\n1 - Criar/carregar novo grafo\n");
         } else {
-            printf("2 - Inserir aresta\n");
+            printf("2 - Visão Geral do grafo\n");
+            printf("3 - Inserir aresta\n");
             printf("3 - Remover aresta\n");
-            printf("4 - Verificar grau de um vertice\n");
-            printf("5 - Verificar grau medio do grafo\n");
-            printf("6 - Verificar grau maximo do grafo\n");
-            printf("7 - Imprimir grafo\n");
-            printf("8 - Adicionar novo vertice\n");
-            printf("9 - Verificar componentes conexas\n");
-            printf("10 - Verificar menor caminho medio\n");
+            printf("5 - Verificar grau de um vertice\n");
+            printf("6 - Verificar grau medio do grafo\n");
+            printf("7 - Verificar grau maximo do grafo\n");
+            printf("8 - Imprimir grafo\n");
+            printf("9 - Adicionar novo vertice\n");
+            printf("10 - Verificar componentes conexas\n");
+            printf("11 - Verificar menor caminho medio\n");
         }
         printf("0 - Sair\n");
 

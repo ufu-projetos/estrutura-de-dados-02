@@ -22,5 +22,6 @@ void dfs(Grafo *G, int vertice, int *visitado, int *tamanho_componente);
 void componentesConexas(Grafo *G, int *num_componentes, int *maior_componente);
 void dijkstra(Grafo *G, int origem, double *dist);
 double menorCaminhoMedio(Grafo *G);
+void visaoGeral(Grafo *G);
 
 #endif

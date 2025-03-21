@@ -232,7 +232,7 @@ int grauMax(Grafo *G, int *vertice) {
 }
 
 // Verifica se o grafo e ponderado
-int grafoePonderado(Grafo *G) {
+int grafoEhPonderado(Grafo *G) {
     if(G == NULL) {
         printf("[!] Nao foi possivel verificar se o grafo e ponderado - grafo nulo.");
         exit(1);
@@ -331,6 +331,15 @@ Grafo *menu(Grafo *G, int opcao) {
         
         case 2:
             if(G == NULL) {
+                printf("\n[!] O grafo ainda nao foi criado!\n");
+            } else {
+                visaoGeral(G);
+            }
+
+            break;
+        
+        case 3:
+            if(G == NULL) {
                 printf("\n[!] Nao e possivel adicionar aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
                 int origem, destino, peso;
@@ -339,7 +348,7 @@ Grafo *menu(Grafo *G, int opcao) {
                 printf("Digite o destino da aresta: ");
                 scanf("%d", &destino);
 
-                if(grafoePonderado(G)) {
+                if(grafoEhPonderado(G)) {
                     printf("Digite o peso da aresta: ");
                     scanf("%d", &peso);
                 } else {
@@ -355,7 +364,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 3:
+        case 4:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel remover aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -374,7 +383,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 4:
+        case 5:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar o grau de um vertice. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -392,7 +401,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 5:
+        case 6:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar o grau medio do grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -401,7 +410,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 6:
+        case 7:
             int vertice = 0;
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar o grau maximo do grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
@@ -412,7 +421,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
 
-        case 7:
+        case 8:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel imprimir o grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -421,7 +430,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 8:
+        case 9:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel adicionar um novo vertice ao grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -440,7 +449,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
         break;
 
-        case 9:
+        case 10:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar as componentes conexas. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -451,7 +460,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
             break;
         
-        case 10:
+        case 11:
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar o menor caminho medio. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
@@ -703,4 +712,33 @@ double menorCaminhoMedio(Grafo *G) {
     if (total_caminhos == 0) return -1;
 
     return soma_caminhos / total_caminhos;
+}
+
+// Visao geral do grafo
+void visaoGeral(Grafo *G) {
+    if (G == NULL) {
+        printf("[!] O grafo ainda não foi criado.\n");
+        return;
+    }
+
+    printf("\n\t\t\t\t\t\t--- Visão Geral do Grafo ---\n\n\n");
+    printf("[-] Número de vértices: %d\n", G->numero_vertices);
+    printf("[-] Grafo %s\n", G->eh_digrafo ? "direcionado" : "não direcionado");
+    printf("[-] Grafo %s\n", G->eh_ponderado ? "ponderado" : "não ponderado");
+    printf("[-] Grau médio do grafo: %.2f\n", grauMedio(G));
+    int vertice;
+    int grau = grauMax(G, &vertice);
+    printf("[-] Grau máximo do grafo: %d no vertice %d\n", grau, vertice);
+
+    int num_componentes = 0, maior_componente = 0;
+    componentesConexas(G, &num_componentes, &maior_componente);
+    printf("[-] Número de componentes conexas: %d\n", num_componentes);
+    printf("[-] Tamanho da maior componente: %d\n", maior_componente);
+
+    double caminho_medio = menorCaminhoMedio(G);
+    if (caminho_medio < 0) {
+        printf("[-] Menor caminho médio: Não aplicável (grafo desconexo).\n");
+    } else {
+        printf("[-] Menor caminho médio: %.2f\n", caminho_medio);
+    }
 }
