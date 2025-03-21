@@ -7,6 +7,11 @@
 #include <limits.h>
 #include <stdint.h>
 
+struct mapeamento {
+    int original;
+    int index;
+};
+
 struct no {
     int rotulo; // id do vertice adjacente
     double peso;
@@ -19,27 +24,33 @@ struct grafo {
     int numero_vertices;
     No **arestas;
     int *grau;
-    int *label; // id do vertice
+    Mapeamento *map; // mapeia os rotulos dos vertices
 };
 
 Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo) {
     Grafo *G = (Grafo *)malloc(sizeof(Grafo));
-    if (G == NULL) {
+    if (!G) {
         printf("[!] Nao foi possivel criar o grafo!\n");
         exit(1);
     }
 
     G->numero_vertices = numero_vertices;
-    G->eh_ponderado = eh_ponderado ? 1 : 0;
-    G->eh_digrafo = eh_digrafo ? 1 : 0;
+    G->eh_ponderado = eh_ponderado;
+    G->eh_digrafo = eh_digrafo;
     G->grau = (int *)calloc(numero_vertices, sizeof(int));
     G->arestas = (No **)malloc(numero_vertices * sizeof(No *));
-    G->label = (int *)malloc(numero_vertices * sizeof(int));
+    G->map = (Mapeamento *)malloc(numero_vertices * sizeof(Mapeamento));
+
+    if (!G->grau || !G->arestas || !G->map) {
+        printf("[!] Falha na alocacao de memoria.\n");
+        exit(1);
+    }
 
     for (int i = 0; i < numero_vertices; i++) {
         G->arestas[i] = NULL;
         G->grau[i] = 0;
-        G->label[i] = i; // Inicializa o label com o índice do vértice
+        G->map[i].original = -1;
+        G->map[i].index = i;
     }
 
     return G;
@@ -51,40 +62,44 @@ int liberarGrafo(Grafo *G) {
         return 0;
     }
 
-    // Libera as arestas de cada vertice
     for(int i = 0; i < G->numero_vertices; i++) {
         No *atual = G->arestas[i];
         while(atual != NULL) {
             No *temp = atual;
             atual = atual->proximo;
-            free(temp);  // Libera cada nó da lista
+            free(temp);
         }
     }
     
-    free(G->arestas);  // Libera o vetor de arestas
-    free(G->grau);     // Libera o vetor de graus
-    free(G);           // Libera a estrutura do grafo
+    free(G->arestas);
+    free(G->grau);
+    free(G->map);
+    free(G);
 
     return 1;
 }
 
 void imprimirGrafo(Grafo *G) {
-    if(G == NULL) {
-        printf("[!] Nao foi possivel imprimir o grafo - grafo nulo!");
-        exit(1);
+    if (G == NULL) {
+        printf("[!] Nao foi possivel imprimir o grafo - grafo nulo!\n");
+        return;
     }
-    printf("\t\t\t\t\t\t\t\t\n\n ---- GRAFO IMPRESSO ----\n\n");
 
-    for(int i = 0; i < G->numero_vertices; i++) {
-        // Imprimi o label do vertice
-        printf("\n[%s%d] -> ", (G->label[i] < 10) ? "0" : "", G->label[i]);
+    printf("\n ---- GRAFO IMPRESSO ----\n\n");
+
+    for (int i = 0; i < G->numero_vertices; i++) {
+        int rotuloOrigem = G->map[i].original;
+        if (rotuloOrigem == -1) continue;
+
+        printf("\n[%s%d] -> ", (rotuloOrigem < 10) ? "0" : "", rotuloOrigem);
 
         No *p = G->arestas[i];
-        while(p != NULL) {
-            printf("%d", p->rotulo);
-            if(G->eh_ponderado) printf(" (%lf)", p->peso);
-            if(p->proximo != NULL) printf(", ");
-            
+        while (p != NULL) {
+            int rotuloDestino = G->map[p->rotulo].original;
+            printf("%d", rotuloDestino);
+            if (G->eh_ponderado) printf(" (%lf)", p->peso);
+            if (p->proximo != NULL) printf(", ");
+
             p = p->proximo;
         }
         printf("\n");
@@ -92,58 +107,111 @@ void imprimirGrafo(Grafo *G) {
     printf("\n");
 }
 
+int buscarIndice(Grafo *G, int rotulo) {
+    for (int i = 0; i < G->numero_vertices; i++) {
+        if (G->map[i].original == rotulo) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void associarRotulo(Grafo *G, int rotulo, int index) {
+    G->map[index].original = rotulo;
+}
+
 int inserirAresta(Grafo *G, int origem, int destino, double peso) {
-    if (G == NULL) {
+    if (!G) {
         printf("[!] Nao foi possivel inserir aresta - grafo nulo.\n");
-        exit(1);
+        return 0;
     }
 
-    if ((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+    int indexOrigem = buscarIndice(G, origem);
+    int indexDestino = buscarIndice(G, destino);
+
+    if (indexOrigem == -1) {
+        indexOrigem = buscarIndice(G, origem);
+        if(indexOrigem == -1){
+             for(int i = 0; i < G->numero_vertices; ++i){
+                if(G->map[i].original == -1){
+                    indexOrigem = i;
+                    associarRotulo(G, origem, i);
+                    break;
+                }
+             }
+        }
+    }
+
+    if (indexDestino == -1) {
+        indexDestino = buscarIndice(G, destino);
+        if(indexDestino == -1){
+            for(int i = 0; i < G->numero_vertices; ++i){
+                if(G->map[i].original == -1){
+                    indexDestino = i;
+                    associarRotulo(G, destino, i);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (indexOrigem == -1 || indexDestino == -1) {
+        printf("[!] Vertice nao encontrado: Origem %d, Destino %d.\n", origem, destino);
         return 0;
     }
 
     No *aresta = malloc(sizeof(No));
-    aresta->rotulo = destino;
-    if (G->eh_ponderado) aresta->peso = peso;
-    aresta->proximo = G->arestas[origem];
-    G->arestas[origem] = aresta;
-    G->grau[origem]++;
+    if (!aresta) {
+        printf("[!] Falha ao alocar memoria para a aresta.\n");
+        return 0;
+    }
+    aresta->rotulo = indexDestino;
+    aresta->peso = (G->eh_ponderado) ? peso : 1.0;
+    aresta->proximo = G->arestas[indexOrigem];
+    G->arestas[indexOrigem] = aresta;
+    G->grau[indexOrigem]++;
 
-    // Verifica se o grafo não é direcionado
     if (!G->eh_digrafo) {
         No *aresta_inversa = malloc(sizeof(No));
-        aresta_inversa->rotulo = origem;
-        if (G->eh_ponderado) aresta_inversa->peso = peso;
-        aresta_inversa->proximo = G->arestas[destino];
-        G->arestas[destino] = aresta_inversa;
-        G->grau[destino]++;
+        if (!aresta_inversa) {
+            printf("[!] Falha ao alocar memoria para a aresta inversa.\n");
+            return 0;
+        }
+        aresta_inversa->rotulo = indexOrigem;
+        aresta_inversa->peso = (G->eh_ponderado) ? peso : 1.0;
+        aresta_inversa->proximo = G->arestas[indexDestino];
+        G->arestas[indexDestino] = aresta_inversa;
+        G->grau[indexDestino]++;
     }
 
     return 1;
 }
 
 int removerAresta(Grafo *G, int origem, int destino) {
-    if(G == NULL) {
+   if(G == NULL) {
         perror("\n[!] Nao foi possivel remover aresta - grafo nulo.");
         exit(1);
     }
 
-    if((origem < 0 || origem >= G->numero_vertices) || (destino < 0 || destino >= G->numero_vertices)) {
+    int indexOrigem = buscarIndice(G, origem);
+    int indexDestino = buscarIndice(G, destino);
+
+    if (indexOrigem == -1 || indexDestino == -1) {
+        printf("[!] Vertice nao encontrado: Origem %d, Destino %d.\n", origem, destino);
         return 0;
     }
 
-    // Remove a aresta (origem, destino)
-    No *atual = G->arestas[origem];
+    No *atual = G->arestas[indexOrigem];
     No *anterior = NULL;
     
     while(atual != NULL) {
-        if(atual->rotulo == destino) {
+        if(atual->rotulo == indexDestino) {
             if(anterior == NULL) {
-                G->arestas[origem] = atual->proximo;
+                G->arestas[indexOrigem] = atual->proximo;
             } else {
                 anterior->proximo = atual->proximo;
             }
-            G->grau[origem]--;
+            G->grau[indexOrigem]--;
             free(atual);
             break;
         }
@@ -151,19 +219,18 @@ int removerAresta(Grafo *G, int origem, int destino) {
         atual = atual->proximo;
     }
 
-    // Se o grafo nao for direcionado, remove a aresta (destino, origem)
     if(!G->eh_digrafo) {
-        atual = G->arestas[destino];
+        atual = G->arestas[indexDestino];
         anterior = NULL;
 
         while(atual != NULL) {
-            if(atual->rotulo == origem) {
+            if(atual->rotulo == indexOrigem) {
                 if(anterior == NULL) {
-                    G->arestas[destino] = atual->proximo;
+                    G->arestas[indexDestino] = atual->proximo;
                 } else {
                     anterior->proximo = atual->proximo;
                 }
-                G->grau[destino]--;
+                G->grau[indexDestino]--;
                 free(atual);
                 return 1;
             }
@@ -176,21 +243,23 @@ int removerAresta(Grafo *G, int origem, int destino) {
 }
 
 int grau(Grafo *G, int vertice) {
-    if(G == NULL) {
+   if(G == NULL) {
         printf("[!] Nao foi possivel verfificar o grau do vertice %d - grafo nulo.", vertice);
         exit(1);
     }
 
-    // verifica se o vertice e válido
-    if(vertice < 0 || vertice >= G->numero_vertices) {
+    int indexVertice = buscarIndice(G, vertice);
+
+    if (indexVertice == -1) {
+        printf("[!] Vertice nao encontrado: %d.\n", vertice);
         return -1;
     }
-
-    return G->grau[vertice];
+    
+    return G->grau[indexVertice];
 }
 
 float grauMedio(Grafo *G) {
-    if(G == NULL) {
+   if(G == NULL) {
         printf("[!] Nao foi possivel calcular o grau medio - grafo nulo.");
         exit(1);
     }
@@ -220,20 +289,20 @@ int grauMax(Grafo *G, int *vertice) {
     }
 
     int max = G->grau[0];
-    *vertice = 0;
-    for(int i = 0; i < G->numero_vertices; i++) {
+    *vertice = G->map[0].original;
+
+    for(int i = 1; i < G->numero_vertices; i++) {
         if(G->grau[i] > max) {
             max = G->grau[i];
-            *vertice = i;
+            *vertice = G->map[i].original;
         }
     }
     
     return max;
 }
 
-// Verifica se o grafo e ponderado
 int grafoEhPonderado(Grafo *G) {
-    if(G == NULL) {
+   if(G == NULL) {
         printf("[!] Nao foi possivel verificar se o grafo e ponderado - grafo nulo.");
         exit(1);
     }
@@ -241,11 +310,11 @@ int grafoEhPonderado(Grafo *G) {
     return G->eh_ponderado;
 }
 
-// Menu do terminal
 Grafo *menu(Grafo *G, int opcao) {
+    int vertice;
+
     switch(opcao) {
         case 1:
-            // Caso o grafo ja tenha sido criado
             if(G != NULL) {
                 printf("\n[!] O grafo já foi criado!\n");
                 break;
@@ -256,7 +325,6 @@ Grafo *menu(Grafo *G, int opcao) {
             printf("\n[?] Deseja criar um grafo manulamente ou carregar um arquivo?\n");
             printf("\n1 - Criar manualmente\n2 - Carregar arquivo\n");
 
-            // Opcao de criar manualmente ou carregar arquivo
             do {
                 printf("\n> ");
                 scanf("%d", &selecao);
@@ -266,9 +334,7 @@ Grafo *menu(Grafo *G, int opcao) {
                 }
             } while (selecao != 1 && selecao != 2);
 
-            // ---------- Criacao manual -----------
             if(selecao == 1) {
-                // Opcao de grafo ponderado ou nao ponderado
                 do {
                     printf("\n[?] O grafo e ponderado? (1 - Sim, 0 - Nao)\n> ");
                     scanf("%d", &eh_ponderado);
@@ -278,7 +344,6 @@ Grafo *menu(Grafo *G, int opcao) {
                     }
                 } while(eh_ponderado != 0 && eh_ponderado != 1);
     
-                // Opcao de grafo direcionado ou nao direcionado
                 do {
                     printf("\n[?] O grafo e direcionado? (1 - Sim, 0 - Nao)\n> ");
                     scanf("%d", &eh_digrafo);
@@ -288,7 +353,6 @@ Grafo *menu(Grafo *G, int opcao) {
                     }
                 } while(eh_digrafo != 0 && eh_digrafo != 1);
 
-                // Numero de vertices do grafo
                 do {
                     printf("\n[*] Digite o numero de vertices do grafo: ");
                     scanf("%d", &numero_vertices);
@@ -299,10 +363,12 @@ Grafo *menu(Grafo *G, int opcao) {
                 } while(numero_vertices <= 0);
 
                 G = criarGrafo(numero_vertices, eh_ponderado, eh_digrafo);
+
+                for (int i = 0; i < numero_vertices; i++) {
+                    associarRotulo(G, i, i);
+                }
             }
-            // ------------ Carregar arquivo --------------
             else {
-                // Se o grafo e ponderado ou nao
                 do {
                     printf("\n[?] O grafo e ponderado? (1 - Sim, 0 - Nao)\n> ");
                     scanf("%d", &eh_ponderado);
@@ -318,8 +384,6 @@ Grafo *menu(Grafo *G, int opcao) {
 
                 G = carregarArquivo(G, nome_arquivo, (eh_ponderado == 1) ? 1 : 0);
             }
-
-            
 
             if(G == NULL) {
                 printf("\n[!] Erro ao criar grafo!\n");
@@ -342,7 +406,9 @@ Grafo *menu(Grafo *G, int opcao) {
             if(G == NULL) {
                 printf("\n[!] Nao e possivel adicionar aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
-                int origem, destino, peso;
+                int origem, destino;
+                double peso = 1.0;
+
                 printf("\nDigite a origem da aresta: ");
                 scanf("%d", &origem);
                 printf("Digite o destino da aresta: ");
@@ -350,9 +416,7 @@ Grafo *menu(Grafo *G, int opcao) {
 
                 if(grafoEhPonderado(G)) {
                     printf("Digite o peso da aresta: ");
-                    scanf("%d", &peso);
-                } else {
-                    peso = 0;
+                    scanf("%lf", &peso);
                 }
 
                 if(inserirAresta(G, origem, destino, peso)) {
@@ -365,7 +429,7 @@ Grafo *menu(Grafo *G, int opcao) {
             break;
         
         case 4:
-            if(G == NULL) {
+           if(G == NULL) {
                 printf("\n[!] Nao e possivel remover aresta. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
                 int origem, destino;
@@ -411,12 +475,12 @@ Grafo *menu(Grafo *G, int opcao) {
             break;
         
         case 7:
-            int vertice = 0;
+            vertice = 0;
             if(G == NULL) {
                 printf("\n[!] Nao e possivel verificar o grau maximo do grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
                 int grauMaximo = grauMax(G, &vertice);
-                printf("\nO grau maximo do grafo e: %d no vertice %d", grauMaximo, vertice);
+                printf("\nO grau maximo do grafo e: %d no vertice %d\n", grauMaximo, vertice);
             }
 
             break;
@@ -434,15 +498,9 @@ Grafo *menu(Grafo *G, int opcao) {
             if(G == NULL) {
                 printf("\n[!] Nao e possivel adicionar um novo vertice ao grafo. O grafo nao foi criado ou teve problemas na criacao.\nTente novamente.\n");
             } else {
-                do {
-                    printf("\nDigite o vertice que deseja adicionar: ");
-                    scanf("%d", &vertice);
-
-                    if(vertice < 0) {
-                        printf("\n[!] Vertice invalido! Digite um vertice valido.\n");
-                        continue;
-                    }
-                } while(vertice < 0);
+                int vertice;
+                printf("\nDigite o vertice que deseja adicionar: ");
+                scanf("%d", &vertice);
 
                 inserirVertice(G, vertice);
             }
@@ -483,14 +541,12 @@ Grafo *menu(Grafo *G, int opcao) {
 
 }
 
-// Encerra o programa
 void encerrar(Grafo *G) {
     printf("Saindo do programa...\n");
     if(G != NULL) {
         liberarGrafo(G);
     }
 
-    // Efeito loading
     int counter = 0;
     while(counter < 90) {
         printf("*");
@@ -502,7 +558,6 @@ void encerrar(Grafo *G) {
     printf("\n\nPrograma encerrado com exito! :)\n\n");
 }
 
-// Carrega um arquivo de um grafo
 Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo, int eh_ponderado) {
     FILE *arquivo = fopen(nome_arquivo, "r");
     if (arquivo == NULL) {
@@ -557,7 +612,7 @@ Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo, int eh_ponderado) {
         } else {
             peso = 1.0;
             char c;
-            while ((c = fgetc(arquivo)) != '\n' && c != EOF); // Avanca ate o final da linha atual
+            while ((c = fgetc(arquivo)) != '\n' && c != EOF);
         }
         inserirAresta(G, origem, destino, peso);
     }
@@ -571,49 +626,39 @@ Grafo *carregarArquivo(Grafo *G, const char *nome_arquivo, int eh_ponderado) {
     return G;
 }
 
-
-int inserirVertice(Grafo *G, int vertice) {
+int inserirVertice(Grafo *G, int label) { 
     if (G == NULL) {
         printf("[!] Nao foi possivel inserir vertice - grafo nulo.\n");
-        exit(1);
+        return 0;
     }
 
-    // Verifica se o vertice já está dentro do tamanho atual
-    if (vertice < G->numero_vertices) {
-        printf("[*] O vertice %d já existe no grafo.\n", vertice);
+    if (buscarIndice(G, label) != -1) {
+        printf("[*] O vertice %d já existe no grafo.\n", label);
         return 1;
     }
 
-    // Calcula o novo tamanho do grafo (aumenta em ate 50%)
-    int novo_tamanho = G->numero_vertices++;
-    if (vertice >= novo_tamanho) {
-        novo_tamanho = vertice + 1; // Garante que o novo tamanho acomode o vertice
-    }
-
-    // Realoca memória para os vetores do grafo
+    int novo_tamanho = G->numero_vertices + 1;
     G->grau = (int *) realloc(G->grau, novo_tamanho * sizeof(int));
     G->arestas = (No **) realloc(G->arestas, novo_tamanho * sizeof(No *));
-    G->label = (int *) realloc(G->label, novo_tamanho * sizeof(int));
+    G->map = (Mapeamento *) realloc(G->map, novo_tamanho * sizeof(Mapeamento));
 
-    if (G->grau == NULL || G->arestas == NULL || G->label == NULL) {
+    if (G->grau == NULL || G->arestas == NULL || G->map == NULL) {
         printf("[!] Erro ao realocar memória para o grafo.\n");
         exit(1);
     }
 
-    // Inicializa os novos vertices
-    for (int i = G->numero_vertices; i < novo_tamanho; i++) {
-        G->grau[i] = 0;
-        G->arestas[i] = NULL;
-        G->label[i] = i; // Define o rótulo como o indice do vertice
-    }
+    int novo_indice = G->numero_vertices; 
+    G->grau[novo_indice] = 0;
+    G->arestas[novo_indice] = NULL;
+    G->map[novo_indice].original = label;
+    G->map[novo_indice].index = novo_indice;
 
-    G->numero_vertices = novo_tamanho; // Atualiza o número de vertices
-    printf("[*] O grafo foi expandido para %d vertices.\n", G->numero_vertices);
+    G->numero_vertices++;
+    printf("[*] O vértice %d foi adicionado ao grafo.\n", label);
 
     return 1;
 }
 
-// Funcao auxiliar para DFS
 void dfs(Grafo *G, int vertice, int *visitado, int *tamanho_componente) {
     visitado[vertice] = 1;
     (*tamanho_componente)++;
@@ -627,7 +672,6 @@ void dfs(Grafo *G, int vertice, int *visitado, int *tamanho_componente) {
     }
 }
 
-// Determina o número de componentes conexas e o tamanho da maior componente
 void componentesConexas(Grafo *G, int *num_componentes, int *maior_componente) {
     if (G == NULL) {
         printf("[!] Grafo nulo.\n");
@@ -635,6 +679,11 @@ void componentesConexas(Grafo *G, int *num_componentes, int *maior_componente) {
     }
 
     int *visitado = (int *)calloc(G->numero_vertices, sizeof(int));
+    if(!visitado){
+        printf("[!] Falha na alocacao de memoria.\n");
+        exit(1);
+    }
+    
     *num_componentes = 0;
     *maior_componente = 0;
 
@@ -652,9 +701,12 @@ void componentesConexas(Grafo *G, int *num_componentes, int *maior_componente) {
     free(visitado);
 }
 
-// Algoritmo de Dijkstra para encontrar o menor caminho de um vertice
 void dijkstra(Grafo *G, int origem, double *dist) {
     int *visitado = (int *)calloc(G->numero_vertices, sizeof(int));
+     if(!visitado){
+        printf("[!] Falha na alocacao de memoria.\n");
+        exit(1);
+    }
 
     for (int i = 0; i < G->numero_vertices; i++) {
         dist[i] = INT_MAX;
@@ -669,13 +721,13 @@ void dijkstra(Grafo *G, int origem, double *dist) {
             }
         }
 
-        if (dist[u] == INT_MAX) break;
+        if (u == -1 || dist[u] == INT_MAX) break;
 
         visitado[u] = 1;
 
         No *adjacente = G->arestas[u];
         while (adjacente != NULL) {
-            if (dist[u] + adjacente->peso < dist[adjacente->rotulo]) {
+            if (dist[u] != INT_MAX && dist[u] + adjacente->peso < dist[adjacente->rotulo]) {
                 dist[adjacente->rotulo] = dist[u] + adjacente->peso;
             }
             adjacente = adjacente->proximo;
@@ -685,9 +737,8 @@ void dijkstra(Grafo *G, int origem, double *dist) {
     free(visitado);
 }
 
-// Calcula o menor caminho medio do grafo
 double menorCaminhoMedio(Grafo *G) {
-    if (G == NULL) {
+   if (G == NULL) {
         printf("[!] Grafo nulo.\n");
         return -1;
     }
@@ -697,6 +748,10 @@ double menorCaminhoMedio(Grafo *G) {
 
     for (int i = 0; i < G->numero_vertices; i++) {
         double *dist = (double *)malloc(G->numero_vertices * sizeof(double));
+         if(!dist){
+            printf("[!] Falha na alocacao de memoria.\n");
+            exit(1);
+        }
         dijkstra(G, i, dist);
 
         for (int j = 0; j < G->numero_vertices; j++) {
@@ -714,9 +769,8 @@ double menorCaminhoMedio(Grafo *G) {
     return soma_caminhos / total_caminhos;
 }
 
-// Visao geral do grafo
 void visaoGeral(Grafo *G) {
-    if (G == NULL) {
+     if (G == NULL) {
         printf("[!] O grafo ainda nao foi criado.\n");
         return;
     }
@@ -726,7 +780,7 @@ void visaoGeral(Grafo *G) {
     printf("[-] Grafo %s\n", G->eh_digrafo ? "direcionado" : "nao direcionado");
     printf("[-] Grafo %s\n", G->eh_ponderado ? "ponderado" : "nao ponderado");
     printf("[-] Grau medio do grafo: %.2f\n", grauMedio(G));
-    int vertice;
+    int vertice = 0;
     int grau = grauMax(G, &vertice);
     printf("[-] Grau maximo do grafo: %d no vertice %d\n", grau, vertice);
 

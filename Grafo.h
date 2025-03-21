@@ -1,12 +1,15 @@
 #ifndef GRAFO_H
 #define GRAFO_H
 
+typedef struct mapeamento Mapeamento;
 typedef struct no No;
 typedef struct grafo Grafo;
 
 
 Grafo *criarGrafo(int numero_vertices, int eh_ponderado, int eh_digrafo);
 int liberarGrafo(Grafo *G);
+int buscarIndice(Grafo *G, int rotulo);
+void associarRotulo(Grafo *G, int rotulo, int index);
 void imprimirGrafo(Grafo *G);
 int inserirAresta(Grafo *G, int origem, int destino, double peso);
 int removerAresta(Grafo *G, int origem, int destino);
