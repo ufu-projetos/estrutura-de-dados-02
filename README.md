@@ -1,4 +1,4 @@
-# Trabalho 02 - Programa de Compressão de Arquivos por Alg. de Huffman
+# Trabalho 02 - Programa de Compressão e Descompressão de Arquivos por Alg. de Huffman
 
 Este projeto implementa estruturas e algoritmos para compressão e descompressão de arquivos usando algoritmo de Huffman e árvore.
 
