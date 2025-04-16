@@ -5,9 +5,7 @@
 #include <math.h>
 #include <stdint.h> 
 #include "Huffman.h"
-/** Definição do tipo de dados 'byte'
-* 'unsigned char': É o tipo que consegue gravar no intervalo que vai de 0 a 255 bytes
-*/
+
 typedef unsigned char byte;
 
 /** Definição da árvore */
@@ -35,7 +33,7 @@ typedef struct lista
 
 /**
 * A função strdup é dependente de implementação nas plataformas não POSIX (Windows, etc)
-* Segue uma implementação desta função como solução para o problema.
+* Após alguns bugs em diferentes SOs, essa foi a solução que buscada que deu certo
 */
 
 char *strdup(const char *s)
@@ -58,7 +56,7 @@ nodeLista *novoNodeLista(nodeArvore *nArv)
     nodeLista *novo;
     if ( (novo = malloc(sizeof(*novo))) == NULL ) {
         perror("Erro ao alocar memoria para nodeLista");
-        exit(EXIT_FAILURE); // Encerra se a alocação falhar
+        exit(1); // Encerra se a alocação falhar
     }
 
     // Adiciona a árvore ao nó
@@ -81,7 +79,7 @@ nodeArvore *novoNodeArvore(byte c, int frequencia, nodeArvore *esquerda, nodeArv
 
     if ( ( novo = malloc(sizeof(*novo)) ) == NULL ) {
         perror("Erro ao alocar memoria para nodeArvore");
-        exit(EXIT_FAILURE); // Encerra se a alocação falhar
+        exit(1); // Encerra se a alocação falhar
     }
 
 
@@ -125,8 +123,6 @@ void insereLista(nodeLista *n, lista *l)
 
         // Laço que percorre a lista e insere o nó na posição certa de acordo com sua frequência.
         // Se sabe que aux começa apontando para o segundo item da lista e aux2 apontando para o primeiro.
-        // Sendo assim, os ponteiros seguirão mudando de posição enquanto aux não for o fim da lista,
-        // e enquanto a frequência do nó apontado por aux for menor ou igual a frequência do 'nó' parâmetro.
         while (aux && aux->n->frequencia <= n->n->frequencia)
         {
             aux2 = aux;
@@ -158,15 +154,12 @@ nodeArvore *popMinLista(lista *l)
     // Ponteiro auxilar que aponta para o primeiro nó da lista
     nodeLista *aux = l->head;
 
-    // Ponteiro auxiliar que aponta para a árvore contida em aux (árvore do primeiro nó da lista)
     nodeArvore *arvoreRetirada = aux->n;
 
     // Aponta o 'head' da lista para o segundo elemento dela
     l->head = aux->proximo;
 
-    // Libera o ponteiro aux (o nó da lista, não a árvore)
     free(aux);
-    // aux = NULL; // Não é estritamente necessário aqui
 
     // Decrementa a quantidade de elementos
     l->elementos--;
@@ -186,18 +179,10 @@ void getByteFrequency(FILE *entrada, unsigned int *listaBytes)
     }
 
     // Zera a lista de frequência antes de começar (boa prática)
-    // memset(listaBytes, 0, 256 * sizeof(unsigned int)); // Alternativa se string.h estiver incluído
 
     byte c;
     long initial_pos = ftell(entrada); // Guarda a posição inicial
 
-    /***
-    * fread( array/bloco de memoria , tamanho de cada elemento, quantos elementos, arquivo de entrada )
-    * fread retorna a quantidade de blocos lidos com sucesso
-    * Faz a leitura de 1 bloco de tamanho 1 byte a partir do arquivo 'entrada'
-    * e salva no espaco de memoria de 'c'.
-    * Converte esse byte num valor decimal, acessa o bucket correspondente e incrementa o valor (frequência).
-    ***/
     while (fread(&c, 1, 1, entrada) == 1) // Verifica se leu 1 byte com sucesso
     {
         listaBytes[c]++; // Usa o valor do byte diretamente como índice
@@ -209,7 +194,6 @@ void getByteFrequency(FILE *entrada, unsigned int *listaBytes)
     }
 
     // Volta o ponteiro para a posição inicial, caso precise reler o arquivo
-    // rewind(entrada); // Alternativa mais simples se for sempre para o início
     fseek(entrada, initial_pos, SEEK_SET);
 }
 
@@ -234,8 +218,6 @@ int pegaCodigo(nodeArvore *n, byte c, char *buffer, int tamanho)
     if (ehFolha) {
         if (n->c == c) {
             // Verifica se há espaço no buffer (evita overflow)
-            // Assumindo que o buffer tem tamanho suficiente (ex: 1024 como no CompressFile)
-            // Uma verificação mais robusta seria passar o tamanho do buffer como parâmetro.
              if (tamanho < 1024) { // Usando 1024 como exemplo
                 buffer[tamanho] = '\0';
                 return 1;
@@ -267,7 +249,6 @@ int pegaCodigo(nodeArvore *n, byte c, char *buffer, int tamanho)
         // Se não encontrou na esquerda E existe um nó à direita
         if (!encontrado && n->direita)
         {
-            // Verifica se há espaço no buffer antes de escrever e chamar recursão
              if (tamanho + 1 < 1024) { // +1 para o próximo char e +1 para o futuro '\0'
                 buffer[tamanho] = '1';
                 encontrado = pegaCodigo(n->direita, c, buffer, tamanho + 1);
@@ -276,15 +257,6 @@ int pegaCodigo(nodeArvore *n, byte c, char *buffer, int tamanho)
                  return 0;
             }
         }
-
-        // Se não encontrou em nenhum ramo, "apaga" o caminho tentado (backtracking)
-        // Embora a lógica original não fizesse isso explicitamente,
-        // o '\0' só é colocado no final do caminho correto.
-        // A linha abaixo era potencialmente problemática se chamada incorretamente.
-        // if (!encontrado)
-        // {
-        //     buffer[tamanho] = '\0'; // Esta linha pode ser removida ou ajustada
-        // }                        // O importante é que o '\0' final seja colocado apenas no sucesso.
 
         return encontrado;
     }
@@ -314,7 +286,7 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
                  // Tratamento de erro se novoNodeArvore falhar (já tem exit dentro, mas por segurança)
                  fprintf(stderr, "Falha ao criar nó folha para byte %d\n", i);
                  // Limpar memória já alocada na lista 'l' antes de sair seria ideal aqui.
-                 exit(EXIT_FAILURE);
+                 exit(1);
             }
             // Cria um nó da lista encadeada que aponta para o nó da árvore.
             nodeLista* itemLista = novoNodeLista(noFolha);
@@ -323,7 +295,7 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
                  fprintf(stderr, "Falha ao criar item de lista para byte %d\n", i);
                  free(noFolha); // Libera o nó da árvore criado
                  // Limpar memória já alocada na lista 'l'
-                 exit(EXIT_FAILURE);
+                 exit(1);
              }
             // Insere o nó da lista na fila de prioridade (mantendo a ordem por frequência).
             insereLista(itemLista, &l);
@@ -335,12 +307,7 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
     if (l.elementos == 0) {
         return NULL; // Ou tratar como preferir
     }
-    // Se a lista tem 1 elemento (só um tipo de byte), precisamos criar um nó pai
-    // para que o algoritmo funcione (precisa de pelo menos 2 para combinar).
-    // Uma forma é criar um nó fictício ou duplicar o nó.
-    // A abordagem mais simples aqui é deixar o loop while não executar e retornar esse único nó.
-    // No entanto, a descompressão pode precisar de uma árvore válida com ramos.
-    // Vamos adicionar um tratamento para garantir que haja pelo menos um nó pai se houver apenas um filho.
+
     if (l.elementos == 1) {
         nodeArvore *unicoFilho = popMinLista(&l);
         // Cria um nó pai com frequência igual à do filho, apontando para ele (ex: esquerda)
@@ -349,14 +316,11 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
          if (!pai) {
              fprintf(stderr, "Falha ao criar nó pai para árvore de um único byte.\n");
              free(unicoFilho); // Libera o nó filho
-             exit(EXIT_FAILURE);
+             exit(1);
          }
          // Insere o nó pai de volta na lista para ser retornado.
          // (Alternativamente, poderíamos retornar 'pai' diretamente aqui, pois a lista ficaria vazia depois)
          insereLista(novoNodeLista(pai), &l);
-         // Nota: popMinLista vai retirar 'pai' logo após, então l.elementos será 0.
-         // A lógica original retornaria 'unicoFilho', o que pode causar problemas na descompressão
-         // se ela espera sempre poder navegar para esquerda/direita.
     }
 
 
@@ -371,14 +335,9 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
         if (!nodeEsquerdo || !nodeDireito) {
             fprintf(stderr, "Erro inesperado: popMinLista retornou NULL durante construção da árvore.\n");
             // Liberar memória alocada seria necessário aqui antes de sair.
-            exit(EXIT_FAILURE);
+            exit(1);
         }
-
-
-        // Cria um novo nó interno da árvore.
-        // O caractere '#' (ou qualquer valor não-byte) indica que é um nó interno.
-        // A frequência é a soma das frequências dos filhos.
-        // Os nós retirados (nodeEsquerdo, nodeDireito) tornam-se os filhos esquerdo e direito.
+        
         nodeArvore *soma = novoNodeArvore(
                                '#', // Caractere indicativo de nó interno
                                nodeEsquerdo->frequencia + nodeDireito->frequencia,
@@ -388,7 +347,7 @@ nodeArvore *BuildHuffmanTree(unsigned int *listaBytes)
         if (!soma) {
              fprintf(stderr, "Falha ao criar nó interno da árvore.\n");
              // Liberar nodeEsquerdo, nodeDireito e a lista 'l' adequadamente.
-             exit(EXIT_FAILURE);
+             exit(1);
         }
 
         // Insere o novo nó (agora encapsulado em um nodeLista) de volta na fila de prioridade.
@@ -437,8 +396,6 @@ int geraBit(FILE *entrada, unsigned int *posicao, byte *aux) {
         size_t lidos = fread(aux, 1, 1, entrada);
         if (lidos < 1) {
             if (feof(entrada)) {
-                // Chegou ao fim do arquivo. Isso pode ser normal ou um erro,
-                // dependendo se ainda esperávamos mais bits.
                 // A função chamadora (DecompressFile) deve lidar com isso.
                 return -1; // Sinaliza EOF ou erro
             } else {
@@ -470,7 +427,7 @@ void erroArquivo(const char *filename) // Modificado para receber o nome do arqu
     // perror mostra a mensagem de erro específica do sistema
     fprintf(stderr, "Erro ao abrir o arquivo: %s\n", filename);
     perror("Detalhes do erro");
-    exit(EXIT_FAILURE); // Usa EXIT_FAILURE para indicar erro
+    exit(1); // Usa 1 para indicar erro
 }
 
 
@@ -535,7 +492,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
          fclose(saida);
          FreeHuffmanTree(raiz);
          remove(arquivoSaida); // Remove arquivo incompleto
-         exit(EXIT_FAILURE);
+         exit(1);
     }
 
 
@@ -549,7 +506,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
          fclose(saida);
          FreeHuffmanTree(raiz);
          remove(arquivoSaida);
-         exit(EXIT_FAILURE);
+         exit(1);
      }
 
 
@@ -577,7 +534,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(saida);
              FreeHuffmanTree(raiz);
              remove(arquivoSaida); // Arquivo corrompido
-             exit(EXIT_FAILURE);
+             exit(1);
         }
 
         // Para cada bit ('0' ou '1') no código obtido
@@ -606,7 +563,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
                      fclose(saida);
                      FreeHuffmanTree(raiz);
                      remove(arquivoSaida);
-                     exit(EXIT_FAILURE);
+                     exit(1);
                 }
 
                 // Reseta o buffer e o contador para o próximo byte
@@ -615,8 +572,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
             }
         }
     }
-
-    // 5. Escreve o último byte, caso ele não esteja completo (bits restantes < 8)
+    
     if (bitsNoBuffer > 0)
     {
         size_t escritoUltimo = fwrite(&bufferSaida, 1, 1, saida);
@@ -626,12 +582,11 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(saida);
              FreeHuffmanTree(raiz);
              remove(arquivoSaida);
-             exit(EXIT_FAILURE);
+             exit(1);
         }
 
     }
 
-    // 6. Volta ao início do arquivo de saída para escrever o tamanho total de bits
     printf("Finalizando cabecalho (tamanho dos dados)...\n");
     // Pula a tabela de frequência (256 * tamanho de unsigned int)
     fseek(saida, 256 * sizeof(unsigned int), SEEK_SET);
@@ -643,7 +598,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(saida);
              FreeHuffmanTree(raiz);
              remove(arquivoSaida);
-             exit(EXIT_FAILURE);
+             exit(1);
      }
 
     // Calcula tempo e tamanhos
@@ -713,12 +668,12 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
     printf("Lendo cabecalho (frequencias)...\n");
     size_t lidoFreq = fread(listaBytes, sizeof(unsigned int), 256, entrada);
     if (lidoFreq != 256) {
-        fprintf(stderr, "Erro ao ler tabela de frequencias do arquivo '%s'. Arquivo pode estar corrompido ou incompleto.\n", arquivoEntrada);
-        perror("Detalhes do erro fread");
+        fprintf(stderr, "[x] Erro ao ler tabela de frequencias do arquivo '%s'. Arquivo pode estar corrompido ou incompleto.\n", arquivoEntrada);
+        perror("[*] Detalhes do erro fread");
         fclose(entrada);
         fclose(saida);
         remove(arquivoSaida); // Remove arquivo de saída potencialmente vazio/inválido
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     //    b) O número total de bits codificados
@@ -726,17 +681,17 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
     printf("Lendo cabecalho (tamanho dos dados)...\n");
     size_t lidoTam = fread(&totalBits, sizeof(unsigned int), 1, entrada);
      if (lidoTam != 1) {
-        fprintf(stderr, "Erro ao ler o tamanho total de bits do arquivo '%s'. Arquivo pode estar corrompido.\n", arquivoEntrada);
-        perror("Detalhes do erro fread");
+        fprintf(stderr, "[x] Erro ao ler o tamanho total de bits do arquivo '%s'. Arquivo pode estar corrompido.\n", arquivoEntrada);
+        perror("[*] Detalhes do erro fread");
         fclose(entrada);
         fclose(saida);
         remove(arquivoSaida);
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
      // Se totalBits for 0, significa que o arquivo original estava vazio.
      if (totalBits == 0) {
-        printf("Arquivo original estava vazio (0 bits codificados). Arquivo de saida sera vazio.\n");
+        printf("[!] Arquivo original estava vazio (0 bits codificados). Arquivo de saida sera vazio.\n");
         fclose(entrada);
         fclose(saida);
         // O arquivo de saída já foi criado vazio, então está correto.
@@ -760,7 +715,7 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
          fclose(entrada);
          fclose(saida);
          remove(arquivoSaida);
-         exit(EXIT_FAILURE);
+         exit(1);
     }
 
     // 3. Lê os dados comprimidos bit a bit e percorre a árvore para decodificar
@@ -779,12 +734,12 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
 
         // Verifica se geraBit retornou erro (-1)
         if (bit == -1) {
-             fprintf(stderr, "Erro: Fim de arquivo inesperado ou erro de leitura durante a decodificacao (bit %u de %u).\n", bitsDecodificados, totalBits);
+             fprintf(stderr, "[x] Erro: Fim de arquivo inesperado ou erro de leitura durante a decodificacao (bit %u de %u).\n", bitsDecodificados, totalBits);
              fclose(entrada);
              fclose(saida);
              FreeHuffmanTree(raiz);
              remove(arquivoSaida); // Arquivo de saída está incompleto/corrompido
-             exit(EXIT_FAILURE);
+             exit(1);
         }
 
         // Navega na árvore de Huffman com base no bit lido
@@ -796,12 +751,12 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
 
         // Verifica se chegamos a um nó inválido (não deveria acontecer em árvore bem formada)
         if (!nodeAtual) {
-             fprintf(stderr, "Erro: Encontrado caminho invalido na arvore de Huffman durante a decodificacao (bit %u de %u).\n", bitsDecodificados, totalBits);
+             fprintf(stderr, "[x] Erro: Encontrado caminho invalido na arvore de Huffman durante a decodificacao (bit %u de %u).\n", bitsDecodificados, totalBits);
              fclose(entrada);
              fclose(saida);
              FreeHuffmanTree(raiz);
              remove(arquivoSaida);
-             exit(EXIT_FAILURE);
+             exit(1);
         }
 
 
@@ -811,12 +766,12 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
             // Encontramos um byte original! Escreve o caractere (byte) no arquivo de saída.
             size_t escritoByte = fwrite(&(nodeAtual->c), 1, 1, saida);
              if (escritoByte != 1) {
-                perror("Erro ao escrever byte decodificado no arquivo de saida");
+                perror("[x] Erro ao escrever byte decodificado no arquivo de saida");
                 fclose(entrada);
                 fclose(saida);
                 FreeHuffmanTree(raiz);
                 remove(arquivoSaida);
-                exit(EXIT_FAILURE);
+                exit(1);
             }
 
             // Volta para a raiz da árvore para começar a decodificar o próximo caractere
@@ -826,16 +781,6 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
 
         bitsDecodificados++; // Incrementa o contador de bits processados
     }
-
-     // Após o loop, devemos ter decodificado exatamente 'totalBits' bits.
-     // Se nodeAtual não voltou para a raiz, pode indicar um problema (bits extras no final?).
-     if (nodeAtual != raiz) {
-         // Isso pode acontecer se o número totalBits estiver ligeiramente errado
-         // ou se houver bits de preenchimento no último byte que não deveriam ser lidos.
-         // A lógica atual baseada em `bitsDecodificados < totalBits` deve prevenir isso.
-         // Mas é um ponto a observar em caso de erros.
-         // fprintf(stderr, "Aviso: Terminou a decodificacao fora da raiz da arvore.\n");
-     }
 
 
     // Libera a memória da árvore
@@ -860,8 +805,8 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
     printf("----------------------------------------\n");
     printf(" Descompressao Concluida\n");
     printf("----------------------------------------\n");
-    printf("Arquivo de entrada: %s (%.2f KB)\n", arquivoEntrada, (double)tamanhoEntradaBytes / 1024.0);
-    printf("Arquivo de saida:   %s (%.2f KB)\n", arquivoSaida, (double)tamanhoSaidaBytes / 1024.0);
+    printf("[<-] Arquivo de entrada: %s (%.2f KB)\n", arquivoEntrada, (double)tamanhoEntradaBytes / 1024.0);
+    printf("[->] Arquivo de saida:   %s (%.2f KB)\n", arquivoSaida, (double)tamanhoSaidaBytes / 1024.0);
     printf("Tempo gasto: %.3f segundos\n", tempoGasto);
     if (tamanhoEntradaBytes > 0) {
          // A taxa de descompressão não é tão significativa quanto a de compressão,
