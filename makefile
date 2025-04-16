@@ -1,7 +1,7 @@
 # Makefile
 
 # Nome do executável
-EXEC = trabalho01
+EXEC = trabalho02
 
 # Compilador a ser usado
 CC = gcc
@@ -13,18 +13,18 @@ CFLAGS = -Wall -Wextra -g
 BUILD_DIR = build
 
 # Arquivos objeto (arquivos .o)
-OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/Grafo.o
+OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/Huffman.o
 
 # Regra principal: como criar o executável
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS)
 
 # Regras para compilar os arquivos .c em .o
-$(BUILD_DIR)/Grafo.o: Grafo.c Grafo.h
+$(BUILD_DIR)/Huffman.o: Huffman.c Huffman.h
 	@mkdir -p $(BUILD_DIR)  # Cria o diretório se não existir
-	$(CC) $(CFLAGS) -c Grafo.c -o $@
+	$(CC) $(CFLAGS) -c Huffman.c -o $@
 
-$(BUILD_DIR)/main.o: main.c Grafo.h
+$(BUILD_DIR)/main.o: main.c Huffman.h
 	@mkdir -p $(BUILD_DIR)  # Cria o diretório se não existir
 	$(CC) $(CFLAGS) -c main.c -o $@
 
