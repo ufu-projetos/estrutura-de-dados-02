@@ -71,7 +71,7 @@ int main()
     }
 
     // Pede o nome do arquivo de entrada
-    printf("\nDigite o nome do arquivo de ENTRADA (como extensão): ");
+    printf("\nDigite o nome do arquivo de ENTRADA (com extensao): ");
     if (!lerLinha(arquivoEntrada, FILENAME_MAX))
     {
         printf("\n[x] Erro ao ler nome do arquivo de entrada. Saindo...\n");
@@ -85,7 +85,7 @@ int main()
     }
 
     // Pede o nome do arquivo de saída
-    printf("Digite o nome do arquivo de SAIDA (sem extensao - a extensao desse arquivo sera .huff): ");
+    printf("Digite o nome do arquivo de SAIDA (sem extensao, em caso de COMPRESSAO: ");
     if (!lerLinha(arquivoSaida, FILENAME_MAX))
     {
         printf("\n[x] Erro ao ler nome do arquivo de saida. Saindo.\n");

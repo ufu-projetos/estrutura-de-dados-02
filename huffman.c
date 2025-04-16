@@ -434,34 +434,35 @@ void erroArquivo(const char *filename) // Modificado para receber o nome do arqu
 /** Função que comprime um arquivo utilizando a compressão de huffman
 * @param: nome do arquivo a comprimir, nome do arquivo resultado da compressão
 */
-void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
-{
+void CompressFile(const char *arquivoEntrada, const char *arquivoSaida) {
     printf("Iniciando compressao de '%s' para '%s'...\n", arquivoEntrada, arquivoSaida);
     clock_t inicio, final;
     double tempoGasto;
     inicio = clock();
 
+    // Verifica e adiciona a extensão .huff ao arquivo de saída, se necessário
+    char arquivoSaidaComExtensao[512];
+    if (strstr(arquivoSaida, ".huff") == NULL) {
+        snprintf(arquivoSaidaComExtensao, sizeof(arquivoSaidaComExtensao), "%s.huff", arquivoSaida);
+    } else {
+        strncpy(arquivoSaidaComExtensao, arquivoSaida, sizeof(arquivoSaidaComExtensao));
+    }
+
     // Array para guardar a frequência de cada byte (0-255)
-    // Inicializa todas as frequências com 0
     unsigned int listaBytes[256] = {0};
 
     // Abre arquivo de entrada no modo leitura binária ("rb")
     FILE *entrada = fopen(arquivoEntrada, "rb");
     if (!entrada) {
-        erroArquivo(arquivoEntrada); // Passa o nome do arquivo para a função de erro
-        // A linha abaixo não será alcançada devido ao exit() em erroArquivo()
-        // return;
+        erroArquivo(arquivoEntrada);
     }
-
 
     // Abre arquivo de saída no modo escrita binária ("wb")
-    FILE *saida = fopen(arquivoSaida, "wb");
+    FILE *saida = fopen(arquivoSaidaComExtensao, "wb");
     if (!saida) {
-        fclose(entrada); // Fecha o arquivo de entrada antes de sair
-        erroArquivo(arquivoSaida);
-        // return;
+        fclose(entrada);
+        erroArquivo(arquivoSaidaComExtensao);
     }
-
 
     // 1. Calcula a frequência de cada byte no arquivo de entrada
     printf("Calculando frequencia dos bytes...\n");
@@ -477,7 +478,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
         fclose(entrada);
         fclose(saida);
         // Considerar remover o arquivo de saída vazio, se criado.
-        remove(arquivoSaida);
+        remove(arquivoSaidaComExtensao);
         return;
     }
 
@@ -491,7 +492,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
          fclose(entrada);
          fclose(saida);
          FreeHuffmanTree(raiz);
-         remove(arquivoSaida); // Remove arquivo incompleto
+         remove(arquivoSaidaComExtensao); // Remove arquivo incompleto
          exit(1);
     }
 
@@ -505,7 +506,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
          fclose(entrada);
          fclose(saida);
          FreeHuffmanTree(raiz);
-         remove(arquivoSaida);
+         remove(arquivoSaidaComExtensao);
          exit(1);
      }
 
@@ -533,7 +534,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(entrada);
              fclose(saida);
              FreeHuffmanTree(raiz);
-             remove(arquivoSaida); // Arquivo corrompido
+             remove(arquivoSaidaComExtensao); // Arquivo corrompido
              exit(1);
         }
 
@@ -562,7 +563,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
                      fclose(entrada);
                      fclose(saida);
                      FreeHuffmanTree(raiz);
-                     remove(arquivoSaida);
+                     remove(arquivoSaidaComExtensao);
                      exit(1);
                 }
 
@@ -581,7 +582,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(entrada);
              fclose(saida);
              FreeHuffmanTree(raiz);
-             remove(arquivoSaida);
+             remove(arquivoSaidaComExtensao);
              exit(1);
         }
 
@@ -597,7 +598,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
              fclose(entrada);
              fclose(saida);
              FreeHuffmanTree(raiz);
-             remove(arquivoSaida);
+             remove(arquivoSaidaComExtensao);
              exit(1);
      }
 
@@ -626,7 +627,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida)
     printf(" Compressao Concluida\n");
     printf("----------------------------------------\n");
     printf("Arquivo de entrada: %s (%.2f KB)\n", arquivoEntrada, (double)tamanhoEntradaBytes / 1024.0);
-    printf("Arquivo de saida:   %s (%.2f KB)\n", arquivoSaida, (double)tamanhoSaidaBytes / 1024.0);
+    printf("Arquivo de saida:   %s (%.2f KB)\n", arquivoSaidaComExtensao, (double)tamanhoSaidaBytes / 1024.0);
     printf("Tempo gasto: %.3f segundos\n", tempoGasto);
     if (tamanhoEntradaBytes > 0) {
         double taxaCompressao = (double)tamanhoSaidaBytes * 100.0 / tamanhoEntradaBytes;
