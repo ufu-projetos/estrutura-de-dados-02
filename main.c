@@ -10,7 +10,7 @@ int main() {
     printf("\n\n>> Integrantes:");
 
     printf("\n\n\n[-] Joao Guilherme Araujo Viana");
-    printf("\n[-] Matheus Gualter Silva Resende");
+    printf("\n[-] Matheus Gualter Silva Resende"); 
     printf("\n[-] Gabriel Faria de Angelis");
     printf("\n[-] Gustavo Antonio Teixeira de Matos");
     printf("\n[-] Hugo Alves Viana\n\n");
