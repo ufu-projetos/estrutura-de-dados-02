@@ -809,12 +809,6 @@ void DecompressFile(const char *arquivoEntrada, const char *arquivoSaida)
     printf("[<-] Arquivo de entrada: %s (%.2f KB)\n", arquivoEntrada, (double)tamanhoEntradaBytes / 1024.0);
     printf("[->] Arquivo de saida:   %s (%.2f KB)\n", arquivoSaida, (double)tamanhoSaidaBytes / 1024.0);
     printf("Tempo gasto: %.3f segundos\n", tempoGasto);
-    if (tamanhoEntradaBytes > 0) {
-         // A taxa de descompressão não é tão significativa quanto a de compressão,
-         // mas podemos mostrar a relação inversa se desejado.
-         // double taxaDescompressao = (double)tamanhoSaidaBytes * 100.0 / tamanhoEntradaBytes;
-         // printf("Tamanho relativo ao comprimido: %.2f%%\n", taxaDescompressao);
-    }
     printf("----------------------------------------\n");
 }
 
