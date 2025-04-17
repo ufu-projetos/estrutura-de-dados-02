@@ -630,7 +630,7 @@ void CompressFile(const char *arquivoEntrada, const char *arquivoSaida) {
     printf("Arquivo de saida:   %s (%.2f KB)\n", arquivoSaidaComExtensao, (double)tamanhoSaidaBytes / 1024.0);
     printf("Tempo gasto: %.3f segundos\n", tempoGasto);
     if (tamanhoEntradaBytes > 0) {
-        double taxaCompressao = (double)tamanhoSaidaBytes * 100.0 / tamanhoEntradaBytes;
+        double taxaCompressao = (double)(100.0 - (tamanhoSaidaBytes * 100.0 / tamanhoEntradaBytes));
         printf("Taxa de compressao: %.2f%%\n", taxaCompressao);
     } else {
         printf("Taxa de compressao: N/A (arquivo de entrada vazio)\n");

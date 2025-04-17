@@ -85,7 +85,7 @@ int main()
     }
 
     // Pede o nome do arquivo de saída
-    printf("Digite o nome do arquivo de SAIDA (sem extensao, em caso de COMPRESSAO: ");
+    printf("Digite o nome do arquivo de SAIDA (sem extensao, em caso de COMPRESSAO): ");
     if (!lerLinha(arquivoSaida, FILENAME_MAX))
     {
         printf("\n[x] Erro ao ler nome do arquivo de saida. Saindo.\n");
